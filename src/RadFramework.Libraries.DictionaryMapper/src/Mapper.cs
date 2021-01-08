@@ -23,6 +23,12 @@ namespace RadFramework.Libraries.DictionaryMapper
                     values[property.Name] = propertyValue;
                     continue;
                 }
+
+                if (propertyValue is ICloneable c)
+                {
+                    values[property.Name] = c.Clone();
+                    continue;
+                }
                 
                 values[property.Name] = ToDictionary(property.PropertyType, propertyValue);
             }
@@ -38,13 +44,17 @@ namespace RadFramework.Libraries.DictionaryMapper
         {
             CachedType t = map.Type;
 
-            var obj = Activator.Activate(t);
+            var obj = Activator.Activate(map.Type);
 
             foreach (var property in t.Query(TypeQueries.GetProperties))
             {
                 var propertyValue = map.Values[property.Name];
 
-                if (propertyValue is TypedMap childMap)
+                if (propertyValue is ICloneable c)
+                {
+                    propertyValue = c.Clone();
+                }
+                else if (propertyValue is TypedMap childMap)
                 {
                     propertyValue = ToObject(childMap);
                 }
